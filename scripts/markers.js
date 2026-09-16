@@ -1,4 +1,5 @@
 import { getRole } from "./flags.js";
+import { strokeRoundRect } from "./pixi-draw.js";
 
 export const ROLE_VISUAL = {
   fly: { color: 0x33d6ff, fill: 0x082028, label: "FLY", css: "#33d6ff" },
@@ -12,30 +13,28 @@ function tokenSize(token) {
   return { w: w || 100, h: h || 100 };
 }
 
-function strokeRect(g, x, y, w, h, color) {
-  g.setStrokeStyle({ width: 4, color, alpha: 0.95 });
-  g.roundRect(x, y, w, h, 10);
-  g.stroke();
-}
-
 export function refreshMarker(token) {
   if (!token) return;
-  const old = token.children?.find?.((c) => c.name === "flybrainMarker");
-  if (old) {
-    token.removeChild(old);
-    old.destroy?.({ children: true });
-  }
-  const role = getRole(token);
-  const vis = ROLE_VISUAL[role];
-  if (!vis || !token.addChild) return;
+  try {
+    const old = token.children?.find?.((c) => c.name === "flybrainMarker");
+    if (old) {
+      token.removeChild(old);
+      old.destroy?.({ children: true });
+    }
+    const role = getRole(token);
+    const vis = ROLE_VISUAL[role];
+    if (!vis || !token.addChild) return;
 
-  const { w, h } = tokenSize(token);
-  const g = new PIXI.Graphics();
-  g.name = "flybrainMarker";
-  g.eventMode = "none";
-  g.interactive = false;
-  strokeRect(g, 3, 3, Math.max(8, w - 6), Math.max(8, h - 6), vis.color);
-  token.addChild(g);
+    const { w, h } = tokenSize(token);
+    const g = new PIXI.Graphics();
+    g.name = "flybrainMarker";
+    g.eventMode = "none";
+    g.interactive = false;
+    strokeRoundRect(g, 3, 3, Math.max(8, w - 6), Math.max(8, h - 6), vis.color);
+    token.addChild(g);
+  } catch (err) {
+    console.warn("flybrain-vtt marker", err);
+  }
 }
 
 export function refreshAllMarkers() {

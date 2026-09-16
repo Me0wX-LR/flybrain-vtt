@@ -104,8 +104,12 @@ export class FlyBrainHud extends Base {
     super._onRender?.(context, options);
     const root = this.element;
     if (!root) return;
-    this._wire(root);
-    this._mountBrain(root);
+    try {
+      this._wire(root);
+      this._mountBrain(root);
+    } catch (err) {
+      console.warn("flybrain-vtt hud render", err);
+    }
   }
 
   _wire(root) {
@@ -137,14 +141,18 @@ export class FlyBrainHud extends Base {
   _mountBrain(root) {
     const canvas = root.querySelector("canvas.flybrain-3d");
     if (!canvas) return;
-    this.brain3d?.destroy();
-    this.brain3d = new Brain3D(canvas);
-    this.brain3d.resize();
-    const api = game.modules.get(MODULE_ID)?.api;
-    this.brain3d.setActivity(api?.bridge?.lastFrame?.activity);
-    const health = flyHealth();
-    this.brain3d.setDead(health.dead);
-    this.brain3d.setPain(health.pain);
+    try {
+      this.brain3d?.destroy();
+      this.brain3d = new Brain3D(canvas);
+      this.brain3d.resize();
+      const api = game.modules.get(MODULE_ID)?.api;
+      this.brain3d.setActivity(api?.bridge?.lastFrame?.activity);
+      const health = flyHealth();
+      this.brain3d.setDead(health.dead);
+      this.brain3d.setPain(health.pain);
+    } catch (err) {
+      console.warn("flybrain-vtt 3d", err);
+    }
   }
 
   async _onClose(options) {
@@ -165,8 +173,13 @@ export function openHud() {
     ui.notifications.warn(t("FLYBRAIN.GmOnly"));
     return;
   }
-  if (!hudApp) hudApp = new FlyBrainHud();
-  hudApp.render({ force: true });
+  try {
+    if (!hudApp) hudApp = new FlyBrainHud();
+    return hudApp.render({ force: true });
+  } catch (err) {
+    console.error("flybrain-vtt hud", err);
+    ui.notifications.error("Fly Brain panel failed to open. Press F12 and check the console.");
+  }
 }
 
 export function toggleHud() {

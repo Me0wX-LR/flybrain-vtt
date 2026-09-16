@@ -3,6 +3,7 @@ import { getFlyToken } from "./flags.js";
 import { getDummySomata, loadSomataBin, REGION_LAYOUT } from "./somata.js";
 import { createPointMesh, setPointScale, uploadActivity } from "./shader.js";
 import { getSetting } from "./settings.js";
+import { fillCircle } from "./pixi-draw.js";
 
 const INSET = 400;
 
@@ -38,38 +39,42 @@ export function registerLayer() {
 
     async _draw() {
       await super._draw?.();
-      this.visible = Boolean(getSetting("overlayEnabled") && game.user.isGM);
-      this.eventMode = "static";
-      this.cursor = "pointer";
-      this.on("pointertap", (ev) => this._onTap(ev));
+      try {
+        this.visible = Boolean(getSetting("overlayEnabled") && game.user.isGM);
+        this.eventMode = "none";
+        this.interactive = false;
 
-      const bin = await loadSomataBin(`modules/${MODULE_ID}/data/somata.xy.bin`);
-      if (bin) {
-        this.n = bin.length / 2;
-        this.positions = bin;
-        this.region = new Float32Array(this.n);
-        for (let i = 0; i < this.n; i++) this.region[i] = i % REGION_LAYOUT.length;
-      } else {
-        const dummy = getDummySomata(N_NEURONS);
-        this.n = N_NEURONS;
-        this.positions = dummy.xy;
-        this.region = dummy.region;
+        const bin = await loadSomataBin(`modules/${MODULE_ID}/data/somata.xy.bin`);
+        if (bin) {
+          this.n = bin.length / 2;
+          this.positions = bin;
+          this.region = new Float32Array(this.n);
+          for (let i = 0; i < this.n; i++) this.region[i] = i % REGION_LAYOUT.length;
+        } else {
+          const dummy = getDummySomata(N_NEURONS);
+          this.n = N_NEURONS;
+          this.positions = dummy.xy;
+          this.region = dummy.region;
+        }
+        this.activity = new Float32Array(this.n);
+
+        const local = new Float32Array(this.n * 2);
+        for (let i = 0; i < this.n; i++) {
+          local[i * 2] = this.positions[i * 2] * INSET;
+          local[i * 2 + 1] = this.positions[i * 2 + 1] * INSET;
+        }
+
+        this.cloud = this.addChild(new PIXI.Container());
+        this.mesh = createPointMesh(local, this.activity, this.region);
+        if (this.mesh) this.cloud.addChild(this.mesh);
+        this.lod = this.cloud.addChild(new PIXI.Graphics());
+        this._layout();
+        this._tick = this._tick.bind(this);
+        this._raf = requestAnimationFrame(this._tick);
+      } catch (err) {
+        console.error("flybrain-vtt overlay draw", err);
+        this.visible = false;
       }
-      this.activity = new Float32Array(this.n);
-
-      const local = new Float32Array(this.n * 2);
-      for (let i = 0; i < this.n; i++) {
-        local[i * 2] = this.positions[i * 2] * INSET;
-        local[i * 2 + 1] = this.positions[i * 2 + 1] * INSET;
-      }
-
-      this.cloud = this.addChild(new PIXI.Container());
-      this.mesh = createPointMesh(local, this.activity, this.region);
-      if (this.mesh) this.cloud.addChild(this.mesh);
-      this.lod = this.cloud.addChild(new PIXI.Graphics());
-      this._layout();
-      this._tick = this._tick.bind(this);
-      this._raf = requestAnimationFrame(this._tick);
     }
 
     async _tearDown(options) {
@@ -106,15 +111,19 @@ export function registerLayer() {
 
     _layout() {
       if (!this.cloud) return;
-      const mode = getSetting("overlayMode");
-      const rect = this._insetRect();
-      this.cloud.position.set(rect.x, rect.y);
-      this.cloud.visible = mode === "inset" || this._useLod();
-      if (this.mesh) {
-        this.mesh.visible = mode === "inset" && !this._useLod();
-        setPointScale(this.mesh, canvas.stage?.scale?.x ?? 1);
+      try {
+        const mode = getSetting("overlayMode");
+        const rect = this._insetRect();
+        this.cloud.position.set(rect.x, rect.y);
+        this.cloud.visible = mode === "inset" || this._useLod();
+        if (this.mesh) {
+          this.mesh.visible = mode === "inset" && !this._useLod();
+          setPointScale(this.mesh, canvas.stage?.scale?.x ?? 1);
+        }
+        this._drawLod();
+      } catch (err) {
+        console.warn("flybrain-vtt overlay layout", err);
       }
-      this._drawLod();
     }
 
     _useLod() {
@@ -124,27 +133,26 @@ export function registerLayer() {
 
     _drawLod() {
       if (!this.lod) return;
-      this.lod.clear();
-      const show = this._useLod() || !this.mesh;
-      this.lod.visible = show;
-      if (!show) return;
-      const sums = new Float32Array(REGION_LAYOUT.length);
-      const counts = new Float32Array(REGION_LAYOUT.length);
-      for (let i = 0; i < this.n; i++) {
-        const r = this.region[i] | 0;
-        sums[r] += this.activity[i];
-        counts[r] += 1;
-      }
-      for (let r = 0; r < REGION_LAYOUT.length; r++) {
-        const c = REGION_LAYOUT[r];
-        const mean = counts[r] ? sums[r] / counts[r] : 0;
-        const x = c.x * INSET;
-        const y = c.y * INSET;
-        const rad = 8 + mean * 28;
-        const color = 0x66ccff + r * 0x0a1200;
-        const g = this.lod;
-        g.circle(x, y, rad);
-        g.fill({ color, alpha: 0.25 + mean * 0.6 });
+      try {
+        this.lod.clear();
+        const show = this._useLod() || !this.mesh;
+        this.lod.visible = show;
+        if (!show) return;
+        const sums = new Float32Array(REGION_LAYOUT.length);
+        const counts = new Float32Array(REGION_LAYOUT.length);
+        for (let i = 0; i < this.n; i++) {
+          const r = this.region[i] | 0;
+          sums[r] += this.activity[i];
+          counts[r] += 1;
+        }
+        for (let r = 0; r < REGION_LAYOUT.length; r++) {
+          const c = REGION_LAYOUT[r];
+          const mean = counts[r] ? sums[r] / counts[r] : 0;
+          fillCircle(this.lod, c.x * INSET, c.y * INSET, 8 + mean * 28, 0x66ccff + r * 0x0a1200, 0.25 + mean * 0.6);
+        }
+      } catch (err) {
+        console.warn("flybrain-vtt lod", err);
+        this.lod.visible = false;
       }
     }
 
