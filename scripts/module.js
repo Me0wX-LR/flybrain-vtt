@@ -3,6 +3,7 @@ import { registerSettings } from "./settings.js";
 import { registerCommands } from "./commands.js";
 import { registerHudButtons } from "./hud-buttons.js";
 import { registerLayer } from "./layer.js";
+import { registerMarkers } from "./markers.js";
 import { refreshHud } from "./hud.js";
 import { WorkerBridge } from "./worker-bridge.js";
 import { sampleSensors, sensorCurrents } from "./sensors.js";
@@ -47,6 +48,7 @@ function onPause(paused) {
 Hooks.once("init", () => {
   registerSettings();
   registerLayer();
+  registerMarkers();
   const mod = game.modules.get(MODULE_ID);
   if (mod) mod.api = createApi(() => runtime);
 });

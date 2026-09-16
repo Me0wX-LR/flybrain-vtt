@@ -1,4 +1,5 @@
 import { MODULE_ID, STIMULI, t } from "./constants.js";
+import { pulseBoost } from "./decoder.js";
 
 const ATLAS_HZ = {
   sugar: 150,
@@ -50,6 +51,7 @@ export async function runFlyCommand(raw, { silent = false } = {}) {
     const on = flag !== "off";
     api.bridge?.setStim(verb, on, ATLAS_HZ[verb]);
     api.lastCommand = `${verb} ${on ? "on" : "off"}`;
+    if (on) pulseBoost(verb);
     if (!silent) ui.notifications.info(t("FLYBRAIN.Stimulus", { name: verb, state: on ? "on" : "off" }));
     api.refreshHud();
     return;

@@ -1,42 +1,26 @@
-import {
-  MOVE_COOLDOWN_MS,
-  T_ESCAPE,
-  T_FEED,
-  T_FWD,
-  T_TURN,
-  isSimOwner
-} from "./constants.js";
+import { MOVE_COOLDOWN_MS, T_ESCAPE, T_FEED, T_FWD, isSimOwner } from "./constants.js";
 import { getFlyToken } from "./flags.js";
 import { getSetting } from "./settings.js";
-import { gridDistance } from "./sensors.js";
+import { gridSquares, stepAway, stepFacing, stepToward } from "./grid.js";
 
 let lastMoveAt = 0;
 let lastIntent = { type: "idle" };
 
-function gridSize() {
-  return canvas.grid?.size ?? canvas.grid?.sizeX ?? canvas.dimensions?.size ?? 100;
+export const boosts = {
+  escapeUntil: 0,
+  walkUntil: 0,
+  sugarUntil: 0
+};
+
+export function pulseBoost(kind, ms = 2500) {
+  const until = Date.now() + ms;
+  if (kind === "loom" || kind === "shock" || kind === "escape") boosts.escapeUntil = until;
+  if (kind === "walk") boosts.walkUntil = until;
+  if (kind === "sugar") boosts.sugarUntil = until;
 }
 
 function isDragging(token) {
   return Boolean(token?._dragHandle || token?._original || token?.isDragging);
-}
-
-function translate(token, radians, steps) {
-  const size = gridSize();
-  const dx = Math.cos(radians) * size * steps;
-  const dy = Math.sin(radians) * size * steps;
-  let x = token.document.x + dx;
-  let y = token.document.y + dy;
-  if (canvas.grid?.getSnappedPoint) {
-    const snapped = canvas.grid.getSnappedPoint({ x, y }, { mode: 1 });
-    x = snapped.x;
-    y = snapped.y;
-  } else if (canvas.grid?.getSnappedPosition) {
-    const snapped = canvas.grid.getSnappedPosition(x, y, 1);
-    x = snapped.x;
-    y = snapped.y;
-  }
-  return { x, y };
 }
 
 function blocked(token, dest) {
@@ -60,37 +44,34 @@ function slide(token, dest) {
   return null;
 }
 
-function angleTo(from, to) {
-  const a = from.center ?? { x: from.x, y: from.y };
-  const b = to.center ?? { x: to.x, y: to.y };
-  return Math.atan2(b.y - a.y, b.x - a.x);
-}
-
 export function decodeMotor(motor, sensors) {
   const feedHz = motor?.feedHz ?? 0;
   const escapeHz = motor?.escapeHz ?? 0;
-  const turn = motor?.turn ?? 0;
   const forward = motor?.forward ?? 0;
   const fly = getFlyToken();
   if (!fly) return { type: "idle" };
+  const now = Date.now();
+  const escape = escapeHz > T_ESCAPE || now < boosts.escapeUntil;
+  const walkBoost = now < boosts.walkUntil;
+  const sugarBoost = now < boosts.sugarUntil;
 
-  if (escapeHz > T_ESCAPE && sensors.nearestThreat) {
-    const away = angleTo(fly, sensors.nearestThreat) + Math.PI;
-    return { type: "dash", dir: away, steps: 2, reason: "escape" };
+  if (escape) {
+    if (sensors.nearestThreat) {
+      return { type: "dash", target: sensors.nearestThreat, steps: 2, reason: "escape" };
+    }
+    return { type: "dash", reverse: true, steps: 2, reason: "escape-facing" };
   }
   if (feedHz > T_FEED && sensors.foodInFeedRange) {
     return { type: "feed", reason: "feed" };
   }
-  if (Math.abs(turn) > T_TURN) {
-    const target = turn > 0 ? sensors.nearestFood : sensors.nearestThreat;
-    if (target) {
-      const rot = (angleTo(fly, target) * 180) / Math.PI;
-      return { type: "turn", rotation: rot, reason: "turn" };
+  if (walkBoost || forward > T_FWD) {
+    if (sensors.nearestFood && gridSquares(fly, sensors.nearestFood) > 1) {
+      return { type: "walk", target: sensors.nearestFood, steps: 1, reason: "forward-food" };
     }
+    return { type: "walk", facing: true, steps: 1, reason: "forward" };
   }
-  if (forward > T_FWD) {
-    const facing = ((fly.document.rotation ?? 0) * Math.PI) / 180;
-    return { type: "walk", dir: facing, steps: 1, reason: "forward" };
+  if (sugarBoost && sensors.nearestFood && gridSquares(fly, sensors.nearestFood) > 1) {
+    return { type: "walk", target: sensors.nearestFood, steps: 1, reason: "sugar-seek" };
   }
   return { type: "idle" };
 }
@@ -98,9 +79,16 @@ export function decodeMotor(motor, sensors) {
 export function fakeTowardFood(sensors) {
   const fly = getFlyToken();
   if (!fly || !sensors.nearestFood) return { type: "idle" };
-  const d = gridDistance(fly, sensors.nearestFood);
+  const d = gridSquares(fly, sensors.nearestFood);
   if (d <= 1) return { type: "feed", reason: "food-adjacent" };
-  return { type: "walk", dir: angleTo(fly, sensors.nearestFood), steps: 1, reason: "seek-food" };
+  return { type: "walk", target: sensors.nearestFood, steps: 1, reason: "seek-food" };
+}
+
+function destFor(fly, intent) {
+  if (intent.target && intent.type === "dash") return stepAway(fly, intent.target, intent.steps ?? 2);
+  if (intent.target && intent.type === "walk") return stepToward(fly, intent.target, intent.steps ?? 1);
+  if (intent.facing || intent.reverse) return stepFacing(fly, intent.steps ?? 1, Boolean(intent.reverse));
+  return null;
 }
 
 export async function applyIntent(intent) {
@@ -115,24 +103,19 @@ export async function applyIntent(intent) {
 
   if (intent.type === "feed") {
     lastMoveAt = now;
-    fly.document.setFlag?.("flybrain-vtt", "lastCue", "feed").catch?.(() => null);
-    return lastIntent;
-  }
-
-  if (intent.type === "turn") {
-    lastMoveAt = now;
-    await fly.document.update({ rotation: intent.rotation });
     return lastIntent;
   }
 
   if (intent.type === "walk" || intent.type === "dash") {
-    const dest = translate(fly, intent.dir, intent.steps ?? 1);
+    const dest = destFor(fly, intent);
+    if (!dest) return lastIntent;
+    if (dest.x === fly.document.x && dest.y === fly.document.y) return lastIntent;
     const finalDest = blocked(fly, dest) ? slide(fly, dest) : dest;
-    if (!finalDest) return lastIntent;
+    if (!finalDest || !Number.isFinite(finalDest.x) || !Number.isFinite(finalDest.y)) return lastIntent;
     lastMoveAt = now;
     await fly.document.update(
       { x: finalDest.x, y: finalDest.y },
-      { animation: { duration: intent.type === "dash" ? 120 : 220 } }
+      { animation: { duration: intent.type === "dash" ? 140 : 240 } }
     );
   }
   return lastIntent;

@@ -1,4 +1,4 @@
-import { FLAG_SCOPE, MODULE_ID, ROLES } from "./constants.js";
+import { FLAG_SCOPE, MODULE_ID, ROLES, t } from "./constants.js";
 
 export function getRole(token) {
   const doc = token?.document ?? token;
@@ -10,11 +10,24 @@ export async function setRole(token, role) {
   const doc = token?.document ?? token;
   if (!ROLES.includes(role)) role = "none";
   if (!game.user.isGM) {
-    ui.notifications.warn(game.i18n.localize("FLYBRAIN.GmOnly"));
+    ui.notifications.warn(t("FLYBRAIN.GmOnly"));
     return;
   }
   if (role === "fly") await ensureSingleFly(doc);
   await doc.setFlag(FLAG_SCOPE, "role", role);
+}
+
+export async function assignSelected(role) {
+  const tokens = canvas.tokens?.controlled ?? [];
+  if (!tokens.length) {
+    ui.notifications.warn(t("FLYBRAIN.SelectToken"));
+    return;
+  }
+  for (const token of tokens) {
+    const next = getRole(token) === role ? "none" : role;
+    await setRole(token, next);
+    ui.notifications.info(t("FLYBRAIN.RoleSet", { role: next }));
+  }
 }
 
 export function getStrength(token) {
@@ -45,7 +58,7 @@ async function ensureSingleFly(nextDoc) {
   for (const token of sceneTokens()) {
     const doc = token.document;
     if (doc.id !== nextDoc.id && getRole(token) === "fly") {
-      ui.notifications.warn(game.i18n.localize("FLYBRAIN.OneFly"));
+      ui.notifications.warn(t("FLYBRAIN.OneFly"));
       await doc.setFlag(FLAG_SCOPE, "role", "none");
     }
   }

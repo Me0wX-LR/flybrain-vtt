@@ -1,7 +1,10 @@
 import { MODULE_ID, t } from "./constants.js";
 import { runFlyCommand } from "./commands.js";
 import { getLastIntent } from "./decoder.js";
-import { getFlyToken } from "./flags.js";
+import { getFlyToken, getRole, tokensWithRole } from "./flags.js";
+import { getSetting } from "./settings.js";
+import { talkToFly } from "./talk.js";
+import { ROLE_VISUAL } from "./markers.js";
 
 function ApplicationV2() {
   return foundry.applications?.api?.ApplicationV2 ?? null;
@@ -15,17 +18,30 @@ function pct(v) {
   return Math.round(Math.min(1, Math.max(0, Number(v) || 0)) * 100);
 }
 
-function hudState() {
+export function hudState() {
   const api = game.modules.get(MODULE_ID)?.api;
   const frame = api?.bridge?.lastFrame;
   const fly = getFlyToken();
+  const selected = canvas.tokens?.controlled?.[0];
   const motor = frame?.motor ?? { feedHz: 0, escapeHz: 0, turn: 0, forward: 0 };
   const regions = frame?.regions ?? { optic: 0, al: 0, mb: 0, cx: 0, sez: 0, dn: 0 };
+  const key = String(getSetting("llmApiKey") || "");
   return {
     fly: fly ? fly.document.name : t("FLYBRAIN.NoFly"),
+    flyOk: Boolean(fly),
+    foodCount: tokensWithRole("food").length,
+    threatCount: tokensWithRole("threat").length,
+    selectedName: selected ? selected.document.name : t("FLYBRAIN.NoSelection"),
+    selectedRole: selected ? getRole(selected) : "none",
     lastCommand: api?.lastCommand ?? "—",
     intent: getLastIntent()?.type ?? "idle",
     mode: frame?.mode ?? "dummy",
+    autonomous: Boolean(getSetting("autonomousMovement")),
+    apiKeySet: key.length > 0,
+    apiKeyMasked: key ? "••••••••" : "",
+    apiBase: getSetting("llmBaseUrl") || "https://api.openai.com/v1",
+    apiModel: getSetting("llmModel") || "gpt-4o-mini",
+    talkLog: api?.talkLog ?? [],
     motor: {
       feedHz: Number(motor.feedHz || 0).toFixed(1),
       escapeHz: Number(motor.escapeHz || 0).toFixed(1),
@@ -42,7 +58,8 @@ function hudState() {
     },
     nActive: frame?.nActive ?? 0,
     wallMs: frame?.wallMs?.toFixed?.(2) ?? "—",
-    simMs: frame?.simMs ?? game.settings.get(MODULE_ID, "simMsPerTick")
+    simMs: frame?.simMs ?? game.settings.get(MODULE_ID, "simMsPerTick"),
+    colors: ROLE_VISUAL
   };
 }
 
@@ -57,9 +74,10 @@ export class FlyBrainHud extends Base {
       icon: "fa-solid fa-brain",
       resizable: true
     },
-    position: { width: 340, height: "auto" },
+    position: { width: 380, height: "auto" },
     actions: {
-      cmd: FlyBrainHud.#onCmd
+      cmd: FlyBrainHud.#onCmd,
+      assign: FlyBrainHud.#onAssign
     }
   };
 
@@ -72,8 +90,43 @@ export class FlyBrainHud extends Base {
     if (cmd) runFlyCommand(cmd);
   }
 
+  static async #onAssign(_event, target) {
+    const role = target.dataset.role;
+    await game.modules.get(MODULE_ID)?.api?.assignSelected(role);
+  }
+
   async _prepareContext() {
     return hudState();
+  }
+
+  _onRender(context, options) {
+    super._onRender?.(context, options);
+    const root = this.element;
+    if (!root) return;
+    root.querySelector("[data-flybrain=autonomous]")?.addEventListener("change", async (ev) => {
+      await game.settings.set(MODULE_ID, "autonomousMovement", ev.currentTarget.checked);
+      patchHud();
+    });
+    root.querySelector("[data-flybrain=save-key]")?.addEventListener("click", async (ev) => {
+      ev.preventDefault();
+      const key = root.querySelector("[data-flybrain=apikey]")?.value?.trim() ?? "";
+      const base = root.querySelector("[data-flybrain=apibase]")?.value?.trim() || "https://api.openai.com/v1";
+      const model = root.querySelector("[data-flybrain=apimodel]")?.value?.trim() || "gpt-4o-mini";
+      await game.settings.set(MODULE_ID, "llmApiKey", key);
+      await game.settings.set(MODULE_ID, "llmBaseUrl", base);
+      await game.settings.set(MODULE_ID, "llmModel", model);
+      ui.notifications.info(t("FLYBRAIN.Talk.KeySaved"));
+      this.render({ force: true });
+    });
+    root.querySelector("[data-flybrain=talk-form]")?.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const input = root.querySelector("[data-flybrain=talk]");
+      const text = input?.value?.trim();
+      if (!text) return;
+      input.value = "";
+      await talkToFly(text);
+      this.render({ force: true });
+    });
   }
 
   refresh() {
@@ -87,26 +140,39 @@ export function getHud() {
   return hudApp;
 }
 
-export function toggleHud() {
+export function openHud() {
   if (!game.user.isGM) {
     ui.notifications.warn(t("FLYBRAIN.GmOnly"));
     return;
   }
   if (!hudApp) hudApp = new FlyBrainHud();
-  if (hudApp.rendered) hudApp.close();
-  else hudApp.render({ force: true });
+  hudApp.render({ force: true });
+}
+
+export function toggleHud() {
+  if (hudApp?.rendered) hudApp.close();
+  else openHud();
+}
+
+export function patchHud() {
+  if (!hudApp?.rendered || !hudApp.element) return;
+  const active = document.activeElement;
+  if (hudApp.element.contains(active) && /^(INPUT|TEXTAREA)$/.test(active.tagName)) return;
+  const s = hudState();
+  const kicker = hudApp.element.querySelector(".flybrain-kicker");
+  if (kicker) kicker.textContent = `${s.fly} · ${s.intent} · food ${s.foodCount} · threat ${s.threatCount}`;
+  const intent = hudApp.element.querySelector("[data-flybrain=intent]");
+  if (intent) intent.textContent = s.intent;
+  for (const [name, val] of Object.entries(s.regions)) {
+    const bar = hudApp.element.querySelector(`[data-region="${name}"]`);
+    if (bar) bar.style.width = `${val}%`;
+  }
+  const motors = hudApp.element.querySelector(".flybrain-motors");
+  if (motors) {
+    motors.innerHTML = `<li>feed ${s.motor.feedHz}</li><li>escape ${s.motor.escapeHz}</li><li>turn ${s.motor.turn}</li><li>forward ${s.motor.forward}</li>`;
+  }
 }
 
 export function refreshHud() {
-  if (hudApp?.rendered) hudApp.refresh();
-}
-
-export function renderHudFallback(state) {
-  const regionRows = Object.entries(state.regions)
-    .map(([k, v]) => `<div class="flybrain-meter"><span>${k}</span><i style="width:${Math.round(v * 100)}%"></i></div>`)
-    .join("");
-  return `<div class="flybrain-hud-body">
-    <p>${state.fly} · ${state.intent} · ${state.mode}</p>
-    ${regionRows}
-  </div>`;
+  patchHud();
 }

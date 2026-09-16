@@ -17,8 +17,16 @@
     font-size: 0.85rem;
   }
 
+  .flybrain-warn {
+    margin: 0;
+    padding: 0.35rem 0.5rem;
+    background: #3a2410;
+    color: #ffd18a;
+    font-size: 0.85rem;
+  }
+
   .flybrain-hud-body h3 {
-    margin: 0.4rem 0 0.15rem;
+    margin: 0.45rem 0 0.15rem;
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -51,11 +59,90 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.35rem;
-    margin-top: 0.5rem;
   }
 
   .flybrain-actions button {
     flex: 1 1 auto;
+  }
+
+  .flybrain-pick-fly,
+  button.flybrain-pick-fly {
+    border-color: #33d6ff !important;
+    color: #33d6ff;
+  }
+
+  .flybrain-pick-food,
+  button.flybrain-pick-food {
+    border-color: #ffc43a !important;
+    color: #ffc43a;
+  }
+
+  .flybrain-pick-threat,
+  button.flybrain-pick-threat {
+    border-color: #ff4d6a !important;
+    color: #ff4d6a;
+  }
+
+  .flybrain-check {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  .flybrain-keyrow {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .flybrain-talk {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.35rem;
+  }
+
+  .flybrain-log {
+    max-height: 8rem;
+    overflow: auto;
+    font-size: 0.85rem;
+    padding: 0.25rem 0;
+  }
+
+  .flybrain-log-you {
+    color: var(--color-text-secondary, #bbb);
+    margin: 0.15rem 0;
+  }
+
+  .flybrain-log-fly {
+    color: #9ad7ff;
+    margin: 0.15rem 0;
+  }
+
+  #token-hud .flybrain-token-roles {
+    position: absolute;
+    left: 50%;
+    top: -2.4rem;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.25rem;
+    z-index: 20;
+    pointer-events: auto;
+  }
+
+  #token-hud .flybrain-pick {
+    min-width: 3.4rem;
+    height: 1.7rem;
+    padding: 0 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    background: #1a1a1a;
+    cursor: pointer;
+  }
+
+  #token-hud .flybrain-pick.active {
+    background: #fff;
+    color: #111 !important;
   }
 
   .control-icon.flybrain-role {

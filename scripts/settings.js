@@ -7,7 +7,7 @@ export function registerSettings() {
     scope: "world",
     config: true,
     type: Boolean,
-    default: false
+    default: true
   });
 
   game.settings.register(MODULE_ID, "overlayEnabled", {
@@ -78,6 +78,33 @@ export function registerSettings() {
     config: true,
     type: Boolean,
     default: true
+  });
+
+  game.settings.register(MODULE_ID, "llmApiKey", {
+    name: "FLYBRAIN.Setting.ApiKey",
+    hint: "FLYBRAIN.Setting.ApiKeyHint",
+    scope: "client",
+    config: true,
+    type: String,
+    default: ""
+  });
+
+  game.settings.register(MODULE_ID, "llmBaseUrl", {
+    name: "FLYBRAIN.Setting.ApiBase",
+    hint: "FLYBRAIN.Setting.ApiBaseHint",
+    scope: "client",
+    config: true,
+    type: String,
+    default: "https://api.openai.com/v1"
+  });
+
+  game.settings.register(MODULE_ID, "llmModel", {
+    name: "FLYBRAIN.Setting.ApiModel",
+    hint: "FLYBRAIN.Setting.ApiModelHint",
+    scope: "client",
+    config: true,
+    type: String,
+    default: "gpt-4o-mini"
   });
 }
 

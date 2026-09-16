@@ -1,19 +1,6 @@
-import {
-  FEED_RANGE_SQUARES,
-  FOOD_RANGE_SQUARES,
-  THREAT_RANGE_SQUARES
-} from "./constants.js";
+import { FEED_RANGE_SQUARES, FOOD_RANGE_SQUARES, THREAT_RANGE_SQUARES } from "./constants.js";
 import { getChannel, getFlyToken, getStrength, tokensWithRole } from "./flags.js";
-
-function gridSize() {
-  return canvas.grid?.size ?? canvas.grid?.sizeX ?? canvas.dimensions?.size ?? 100;
-}
-
-export function gridDistance(a, b) {
-  const dx = (a.center?.x ?? a.x) - (b.center?.x ?? b.x);
-  const dy = (a.center?.y ?? a.y) - (b.center?.y ?? b.y);
-  return Math.hypot(dx, dy) / gridSize();
-}
+import { gridSquares } from "./grid.js";
 
 function hasLOS(a, b) {
   const origin = a.center ?? { x: a.x, y: a.y };
@@ -57,37 +44,38 @@ export function sampleSensors() {
 
   let bestFood = Infinity;
   for (const food of foods) {
-    const d = gridDistance(fly, food);
+    const d = gridSquares(fly, food);
     if (d < bestFood) {
       bestFood = d;
       result.nearestFood = food;
     }
     if (d <= FOOD_RANGE_SQUARES && hasLOS(fly, food)) {
-      result.sugar += (1 / (1 + d)) * getStrength(food);
-      const ch = getChannel(food);
-      if (ch === "bitter") {
-        result.bitter += (1 / (1 + d)) * getStrength(food);
-        result.sugar -= (1 / (1 + d)) * getStrength(food);
-      }
+      const mag = (1 / (1 + d)) * getStrength(food);
+      if (getChannel(food) === "bitter") result.bitter += mag;
+      else result.sugar += mag;
     }
     if (d <= FEED_RANGE_SQUARES) result.foodInFeedRange = true;
   }
 
   let bestThreat = Infinity;
   for (const threat of threats) {
-    const d = gridDistance(fly, threat);
+    const d = gridSquares(fly, threat);
     if (d < bestThreat) {
       bestThreat = d;
       result.nearestThreat = threat;
     }
     const prev = lastThreatDist.get(threat.id);
-    const approaching = Number.isFinite(prev) && d < prev - 0.05;
+    const approaching = Number.isFinite(prev) && d < prev - 0.15;
     lastThreatDist.set(threat.id, d);
-    if (d <= THREAT_RANGE_SQUARES && approaching) {
-      result.loom += (1 / (1 + d)) * getStrength(threat);
-      result.approaching = true;
+    if (d <= THREAT_RANGE_SQUARES && hasLOS(fly, threat)) {
+      let mag = (1 / (1 + d)) * getStrength(threat);
+      if (approaching) {
+        mag *= 1.8;
+        result.approaching = true;
+      }
+      result.loom += mag;
     }
-    if (d < 0.6) result.shock += getStrength(threat);
+    if (d < 1) result.shock += getStrength(threat);
   }
 
   result.sugar = Math.min(1, result.sugar);
@@ -105,3 +93,5 @@ export function sensorCurrents(sample) {
   if (sample.shock > 0.02) pairs.push(["shock", sample.shock]);
   return pairs;
 }
+
+export { gridSquares };
