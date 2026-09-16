@@ -1,0 +1,64 @@
+@layer flybrain-vtt {
+  .flybrain-hud .window-content {
+    padding: 0.75rem;
+  }
+
+  .flybrain-hud-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .flybrain-kicker,
+  .flybrain-cmd,
+  .flybrain-debug {
+    margin: 0;
+    color: var(--color-text-secondary, #b5b5b5);
+    font-size: 0.85rem;
+  }
+
+  .flybrain-hud-body h3 {
+    margin: 0.4rem 0 0.15rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .flybrain-motors {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.15rem 0.75rem;
+    margin: 0;
+    padding-left: 1rem;
+  }
+
+  .flybrain-meter {
+    display: grid;
+    grid-template-columns: 4rem 1fr;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+  }
+
+  .flybrain-meter i {
+    display: block;
+    height: 0.45rem;
+    background: var(--color-warm-2, #6cf);
+    max-width: 100%;
+  }
+
+  .flybrain-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+  }
+
+  .flybrain-actions button {
+    flex: 1 1 auto;
+  }
+
+  .control-icon.flybrain-role {
+    color: #9ad7ff;
+  }
+}

@@ -1,0 +1,26 @@
+name: Release zip
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build module.zip
+        run: |
+          mkdir -p dist/flybrain-vtt
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'tools' --exclude 'node_modules' --exclude 'dist' --exclude 'foundryconfig.json' ./ dist/flybrain-vtt/
+          cd dist
+          zip -r ../module.zip flybrain-vtt
+      - name: Upload
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            module.zip
+            module.json

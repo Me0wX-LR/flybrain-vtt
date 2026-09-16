@@ -1,0 +1,16 @@
+{
+  "order": [
+    "opticL",
+    "opticR",
+    "alL",
+    "alR",
+    "mbL",
+    "mbR",
+    "cx",
+    "sez",
+    "dn",
+    "lhL",
+    "lhR",
+    "other"
+  ]
+}

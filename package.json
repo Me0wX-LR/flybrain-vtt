@@ -1,0 +1,10 @@
+{
+  "name": "flybrain-vtt",
+  "private": true,
+  "type": "module",
+  "description": "Author scripts for packing connectome bins. Not loaded by Foundry.",
+  "scripts": {
+    "pack-somata": "node tools/pack-somata.mjs",
+    "validate-sugar": "node tools/validate-sugar.mjs"
+  }
+}

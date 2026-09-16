@@ -1,0 +1,31 @@
+<section class="flybrain-hud-body">
+  <p class="flybrain-kicker">{{fly}} · {{intent}} · {{mode}}</p>
+  <p class="flybrain-cmd">{{localize "FLYBRAIN.LastCommand"}}: {{lastCommand}}</p>
+
+  <h3>{{localize "FLYBRAIN.Motors"}}</h3>
+  <ul class="flybrain-motors">
+    <li>feed {{motor.feedHz}}</li>
+    <li>escape {{motor.escapeHz}}</li>
+    <li>turn {{motor.turn}}</li>
+    <li>forward {{motor.forward}}</li>
+  </ul>
+
+  <h3>{{localize "FLYBRAIN.Regions"}}</h3>
+  <div class="flybrain-meter"><span>optic</span><i style="width: {{regions.optic}}%"></i></div>
+  <div class="flybrain-meter"><span>al</span><i style="width: {{regions.al}}%"></i></div>
+  <div class="flybrain-meter"><span>mb</span><i style="width: {{regions.mb}}%"></i></div>
+  <div class="flybrain-meter"><span>cx</span><i style="width: {{regions.cx}}%"></i></div>
+  <div class="flybrain-meter"><span>sez</span><i style="width: {{regions.sez}}%"></i></div>
+  <div class="flybrain-meter"><span>dn</span><i style="width: {{regions.dn}}%"></i></div>
+
+  <div class="flybrain-actions">
+    <button type="button" data-action="cmd" data-cmd="sugar">{{localize "FLYBRAIN.Cmd.Sugar"}}</button>
+    <button type="button" data-action="cmd" data-cmd="loom">{{localize "FLYBRAIN.Cmd.Loom"}}</button>
+    <button type="button" data-action="cmd" data-cmd="walk">{{localize "FLYBRAIN.Cmd.Walk"}}</button>
+    <button type="button" data-action="cmd" data-cmd="stop">{{localize "FLYBRAIN.Cmd.Stop"}}</button>
+    <button type="button" data-action="cmd" data-cmd="reset">{{localize "FLYBRAIN.Cmd.Reset"}}</button>
+    <button type="button" data-action="cmd" data-cmd="status">{{localize "FLYBRAIN.Cmd.Status"}}</button>
+  </div>
+
+  <p class="flybrain-debug">active {{nActive}} · sim {{simMs}}ms · wall {{wallMs}}ms</p>
+</section>

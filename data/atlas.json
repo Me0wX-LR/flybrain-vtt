@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "graph": {
+    "source": "FlyWire FAFB v783",
+    "synapseThreshold": 5,
+    "note": "ids stay empty until tools/pack-graph.mjs stamps them from public annotations. Dummy worker uses named stimuli, not root IDs."
+  },
+  "stimuli": {
+    "sugar": { "cellTypes": ["sugar GRN"], "ids": [], "hz": 150 },
+    "bitter": { "cellTypes": ["bitter GRN"], "ids": [], "hz": 150 },
+    "loom": { "cellTypes": ["LC4", "LPLC2"], "ids": [], "hz": 80 },
+    "shock": { "cellTypes": ["PPL1"], "ids": [], "hz": 40 },
+    "walk": { "cellTypes": ["DNa", "DNb"], "ids": [], "hz": 40 }
+  },
+  "motors": {
+    "feed": { "ids": [], "cellTypes": ["MN9"], "thresholdHz": 20 },
+    "escape": { "ids": [], "cellTypes": ["DNp01", "Giant Fiber"], "thresholdHz": 5 },
+    "turn": { "idsLeft": [], "idsRight": [], "cellTypes": ["DNp20", "DNa02"] },
+    "forward": { "ids": [], "cellTypes": [] }
+  },
+  "regions": {
+    "optic": { "superClass": "optic", "color": "#6cf" },
+    "al": { "superClass": "antennal_lobe", "color": "#fc6" },
+    "mb": { "superClass": "kenyon_cell", "color": "#c6f" },
+    "cx": { "superClass": "central_complex", "color": "#6f6" },
+    "sez": { "superClass": "sez", "color": "#f66" },
+    "dn": { "superClass": "descending", "color": "#fff" }
+  }
+}
