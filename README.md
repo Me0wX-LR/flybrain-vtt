@@ -10,7 +10,7 @@ Compatible with Foundry **v13+**. System-agnostic.
 
 ## At the table
 
-1. Left toolbar → **brain** icon → **Open Fly Brain panel**.
+1. Left toolbar → **brain** icon (its own control, or the brain button on Token tools). Chat fallback: `/flybrain panel`.
 2. Select a token → click **Fly**. The token art swaps to the bundled fly PNG (cyan ring). Select others → **Food** (gold fruit) or **Threat** (red predator). One click sets the role; click again to restore the original art.
 3. Tick **Walk on grid** in the panel (on by default for new worlds).
 4. Place food a few squares away, or click **Loom** with a threat on the scene. The fly steps on the **grid**, not free-pixel slides.

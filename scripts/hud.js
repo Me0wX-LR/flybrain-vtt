@@ -83,8 +83,8 @@ export class FlyBrainHud extends Base {
     },
     position: { width: 440, height: 720 },
     actions: {
-      cmd: FlyBrainHud.#onCmd,
-      assign: FlyBrainHud.#onAssign
+      cmd: FlyBrainHud.onCmd,
+      assign: FlyBrainHud.onAssign
     }
   };
 
@@ -92,12 +92,12 @@ export class FlyBrainHud extends Base {
     body: { template: `modules/${MODULE_ID}/templates/hud.hbs` }
   };
 
-  static #onCmd(_event, target) {
+  static onCmd(_event, target) {
     const cmd = target.dataset.cmd;
     if (cmd) runFlyCommand(cmd);
   }
 
-  static async #onAssign(_event, target) {
+  static async onAssign(_event, target) {
     const role = target.dataset.role;
     await game.modules.get(MODULE_ID)?.api?.assignSelected(role);
   }

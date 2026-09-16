@@ -2,7 +2,10 @@ import { MODULE_ID } from "./constants.js";
 import { runFlyCommand } from "./commands.js";
 import { assignSelected, getFlyToken, getRole, setRole, syncSceneAppearance, tokensWithRole } from "./flags.js";
 import { getLastIntent } from "./decoder.js";
-import { openHud, refreshHud, toggleHud } from "./hud.js";
+
+function hudApi() {
+  return import("./hud.js");
+}
 
 export function createApi(getRuntime) {
   const runtime = () => getRuntime();
@@ -19,9 +22,17 @@ export function createApi(getRuntime) {
       runtime().lastCommand = v;
     },
     commands: { run: runFlyCommand },
-    toggleHud,
-    openHud,
-    refreshHud,
+    toggleHud() {
+      return hudApi().then((m) => m.toggleHud());
+    },
+    openHud() {
+      return hudApi().then((m) => m.openHud());
+    },
+    refreshHud() {
+      return hudApi()
+        .then((m) => m.refreshHud())
+        .catch((err) => console.warn("flybrain-vtt hud", err));
+    },
     getFlyToken,
     getRole,
     setRole,

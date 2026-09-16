@@ -28,6 +28,10 @@ export async function runFlyCommand(raw, { silent = false } = {}) {
   }
   const { verb, rest } = parseArgs(raw);
 
+  if (verb === "panel" || verb === "hud" || verb === "open") {
+    game.modules.get(MODULE_ID)?.api?.openHud?.();
+    return;
+  }
   if (verb === "status") {
     const text = api.statusText();
     if (!silent) ui.notifications.info(text);

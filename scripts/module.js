@@ -1,10 +1,9 @@
 import { MODULE_ID, TABLE_TICK_MS, isSimOwner, t } from "./constants.js";
 import { registerSettings } from "./settings.js";
 import { registerCommands } from "./commands.js";
-import { registerHudButtons } from "./hud-buttons.js";
+import { registerHudButtons, refreshSceneControls } from "./hud-buttons.js";
 import { registerLayer } from "./layer.js";
 import { registerMarkers } from "./markers.js";
-import { refreshHud } from "./hud.js";
 import { WorkerBridge } from "./worker-bridge.js";
 import { sampleSensors, sensorCurrents } from "./sensors.js";
 import { applyIntent, decodeMotor, fakeTowardFood } from "./decoder.js";
@@ -18,6 +17,12 @@ const runtime = {
   lastCommand: "—",
   tickHandle: null
 };
+
+function refreshHud() {
+  import("./hud.js")
+    .then((m) => m.refreshHud())
+    .catch((err) => console.warn("flybrain-vtt hud", err));
+}
 
 function stopLoop() {
   if (runtime.tickHandle) {
@@ -51,6 +56,7 @@ Hooks.once("init", () => {
   registerSettings();
   registerLayer();
   registerMarkers();
+  registerHudButtons();
   const mod = game.modules.get(MODULE_ID);
   if (mod) mod.api = createApi(() => runtime);
 });
@@ -60,13 +66,13 @@ Hooks.once("setup", () => {
 });
 
 Hooks.once("ready", async () => {
-  registerHudButtons();
   try {
     await loadAtlas();
   } catch (err) {
     console.warn("flybrain-vtt: atlas load failed", err);
   }
   if (game.user.isGM) {
+    refreshSceneControls();
     ui.notifications.info(t("FLYBRAIN.Ready"));
   }
 });
