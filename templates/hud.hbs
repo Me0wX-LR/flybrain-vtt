@@ -9,6 +9,14 @@
     <i data-flybrain="hp-fill" style="width: {{health.pct}}%"></i>
     <span data-flybrain="hp-label">{{health.label}} · {{hpCaption}}</span>
   </div>
+  <div class="flybrain-hp-edit">
+    <label>{{localize "FLYBRAIN.Hp.Edit"}}</label>
+    <input type="number" data-flybrain="hp-value" min="0" step="1" value="{{health.value}}" {{#unless flyOk}}disabled{{/unless}} />
+    <span>/</span>
+    <input type="number" data-flybrain="hp-max" min="1" step="1" value="{{health.max}}" {{#unless flyOk}}disabled{{/unless}} />
+    <button type="button" data-flybrain="hp-apply" {{#unless flyOk}}disabled{{/unless}}>{{localize "FLYBRAIN.Hp.Apply"}}</button>
+  </div>
+  <p class="flybrain-cmd">{{localize "FLYBRAIN.Hp.Hint"}}</p>
 
   <p class="flybrain-kicker">{{fly}} · {{intent}}</p>
   {{#unless flyOk}}<p class="flybrain-warn">{{localize "FLYBRAIN.Hint.NeedFly"}}</p>{{/unless}}

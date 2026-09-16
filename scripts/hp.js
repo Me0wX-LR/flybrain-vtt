@@ -1,31 +1,74 @@
+import { FLAG_SCOPE } from "./constants.js";
 import { getFlyToken } from "./flags.js";
 
 const lastHp = new Map();
 
-function hpBag(actor) {
-  const sys = actor?.system ?? {};
-  return [
-    sys.attributes?.hp,
-    sys.hp,
-    sys.attribs?.hp,
-    sys.health,
-    sys.attributes?.health,
-    actor?.hitPoints
-  ];
+function num(v) {
+  if (v === null || v === undefined || v === "") return NaN;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : NaN;
 }
 
-export function readHp(actor) {
+function pack(value, max) {
+  const m = num(max);
+  const v = num(value);
+  if (!Number.isFinite(m) || m <= 0) return null;
+  return { value: Number.isFinite(v) ? Math.max(0, v) : m, max: m };
+}
+
+function hpBag(actor) {
+  const sys = actor?.system ?? {};
+  return [sys.attributes?.hp, sys.hp, sys.attribs?.hp, sys.health, sys.attributes?.health, actor?.hitPoints];
+}
+
+function flagHp(doc) {
+  if (!doc?.getFlag) return null;
+  return pack(doc.getFlag(FLAG_SCOPE, "hpValue"), doc.getFlag(FLAG_SCOPE, "hpMax"));
+}
+
+function barHp(token) {
+  const obj = token?.document ? token : canvas.tokens?.get(token?.id);
+  if (!obj?.getBarAttribute && !obj?.document?.getBarAttribute) return null;
+  for (const key of ["bar1", "bar2", "bar3"]) {
+    try {
+      const attr = obj.getBarAttribute?.(key) ?? obj.document?.getBarAttribute?.(key);
+      const p = pack(attr?.value, attr?.max);
+      if (p) return p;
+    } catch {
+      /* skip */
+    }
+  }
+  return null;
+}
+
+function actorHp(actor) {
   if (!actor) return null;
   for (const hp of hpBag(actor)) {
     if (!hp || typeof hp !== "object") continue;
-    const value = Number(hp.value);
-    const max = Number(hp.max);
-    if (!Number.isFinite(value) && !Number.isFinite(max)) continue;
-    const v = Number.isFinite(value) ? value : 0;
-    const m = Number.isFinite(max) && max > 0 ? max : Math.max(v, 1);
-    return { value: v, max: m };
+    const p = pack(hp.value, hp.max);
+    if (p) return p;
   }
   return null;
+}
+
+/** Prefer token flags (panel), then token bars, then actor HP with max > 0. Never treat 0/0 stubs as death. */
+export function readHp(tokenOrActor) {
+  const fly = tokenOrActor?.document ? tokenOrActor : getFlyToken();
+  const fromFlags = flagHp(fly?.document ?? fly);
+  if (fromFlags) return fromFlags;
+  const fromBar = barHp(fly);
+  if (fromBar) return fromBar;
+  return actorHp(fly?.actor ?? (tokenOrActor?.system ? tokenOrActor : null));
+}
+
+export async function setFlyHp(value, max) {
+  const fly = getFlyToken();
+  if (!fly || !game.user.isGM) return;
+  const packed = pack(value, max) ?? pack(value, 10) ?? { value: 10, max: 10 };
+  await fly.document.update({
+    [`flags.${FLAG_SCOPE}.hpValue`]: packed.value,
+    [`flags.${FLAG_SCOPE}.hpMax`]: packed.max
+  });
 }
 
 /**
@@ -35,24 +78,24 @@ export function readHp(actor) {
  */
 export function flyHealth() {
   const fly = getFlyToken();
-  const actor = fly?.actor;
-  const hp = readHp(actor);
+  const hp = readHp(fly);
   if (!hp) {
     return {
       present: false,
-      value: 0,
-      max: 0,
+      value: 10,
+      max: 10,
       dead: false,
       pain: 0,
       very: false,
       reward: 0,
       lostTenths: 0,
       label: "—",
-      pct: 0,
+      pct: 100,
       state: "unknown"
     };
   }
-  const key = actor.uuid ?? actor.id ?? fly.id;
+  const actor = fly?.actor;
+  const key = actor?.uuid ?? actor?.id ?? fly?.id;
   const prev = lastHp.get(key);
   lastHp.set(key, hp.value);
   const dead = hp.value < 1;
@@ -88,7 +131,7 @@ export function flyHealth() {
 }
 
 export function isFlySilenced() {
-  const hp = readHp(getFlyToken()?.actor);
+  const hp = readHp(getFlyToken());
   return Boolean(hp && hp.value < 1);
 }
 

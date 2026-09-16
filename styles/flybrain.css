@@ -104,6 +104,21 @@
     text-shadow: 0 0 4px #000;
   }
 
+  .flybrain-hp-edit {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+  }
+
+  .flybrain-hp-edit input[type="number"] {
+    width: 4.2rem;
+    background: #1a1d22;
+    color: #eee;
+    border: 1px solid #555;
+    padding: 0.15rem 0.3rem;
+  }
+
   .flybrain-kicker,
   .flybrain-cmd,
   .flybrain-debug {

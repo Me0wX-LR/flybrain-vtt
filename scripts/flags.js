@@ -78,6 +78,15 @@ async function applyRoleAppearance(doc, role) {
   };
   if (originalSrc) data[`flags.${FLAG_SCOPE}.originalSrc`] = originalSrc;
   if (nextSrc && nextSrc !== srcNow) data["texture.src"] = nextSrc;
+  if (role === "fly") {
+    const hasFlagHp = Number(doc.getFlag(FLAG_SCOPE, "hpMax")) > 0;
+    const sysHp = doc.actor?.system?.attributes?.hp ?? doc.actor?.system?.hp;
+    const hasActorHp = Number(sysHp?.max) > 0;
+    if (!hasFlagHp && !hasActorHp) {
+      data[`flags.${FLAG_SCOPE}.hpValue`] = 10;
+      data[`flags.${FLAG_SCOPE}.hpMax`] = 10;
+    }
+  }
   await doc.update(data);
 }
 
@@ -85,8 +94,18 @@ export async function syncSceneAppearance() {
   if (!game.user?.isGM) return;
   for (const token of sceneTokens()) {
     const role = getRole(token);
-    if (!ROLE_ART[role]) continue;
     const doc = token.document;
+    if (role === "fly") {
+      const hasFlagHp = Number(doc.getFlag(FLAG_SCOPE, "hpMax")) > 0;
+      const sysHp = doc.actor?.system?.attributes?.hp ?? doc.actor?.system?.hp;
+      if (!hasFlagHp && !(Number(sysHp?.max) > 0)) {
+        await doc.update({
+          [`flags.${FLAG_SCOPE}.hpValue`]: 10,
+          [`flags.${FLAG_SCOPE}.hpMax`]: 10
+        });
+      }
+    }
+    if (!ROLE_ART[role]) continue;
     if (currentSrc(doc) === ROLE_ART[role]) continue;
     await applyRoleAppearance(doc, role);
   }

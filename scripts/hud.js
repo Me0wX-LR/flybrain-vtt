@@ -2,7 +2,7 @@ import { MODULE_ID, t } from "./constants.js";
 import { runFlyCommand } from "./commands.js";
 import { getLastIntent } from "./decoder.js";
 import { getFlyToken, getRole, tokensWithRole } from "./flags.js";
-import { flyHealth } from "./hp.js";
+import { flyHealth, setFlyHp } from "./hp.js";
 import { getSetting } from "./settings.js";
 import { talkToFly } from "./talk.js";
 import { Brain3D } from "./brain3d.js";
@@ -136,6 +136,18 @@ export class FlyBrainHud extends Base {
       await talkToFly(text);
       this.render({ force: true });
     });
+    const applyHp = async () => {
+      const value = root.querySelector("[data-flybrain=hp-value]")?.value;
+      const max = root.querySelector("[data-flybrain=hp-max]")?.value;
+      await setFlyHp(value, max);
+      patchHud();
+    };
+    root.querySelector("[data-flybrain=hp-apply]")?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      applyHp();
+    });
+    root.querySelector("[data-flybrain=hp-value]")?.addEventListener("change", applyHp);
+    root.querySelector("[data-flybrain=hp-max]")?.addEventListener("change", applyHp);
   }
 
   _mountBrain(root) {
@@ -199,6 +211,12 @@ export function patchHud() {
   if (hpLabel) hpLabel.textContent = `${s.health.label} · ${s.hpCaption}`;
   const wrap = root.querySelector(".flybrain-3d-wrap");
   if (wrap) wrap.dataset.state = s.health.state;
+  const hpRow = root.querySelector("[data-flybrain=hp-row]");
+  if (hpRow) hpRow.dataset.state = s.health.state;
+  const hpVal = root.querySelector("[data-flybrain=hp-value]");
+  const hpMax = root.querySelector("[data-flybrain=hp-max]");
+  if (hpVal && document.activeElement !== hpVal) hpVal.value = s.health.value;
+  if (hpMax && document.activeElement !== hpMax) hpMax.value = s.health.max;
   const intent = root.querySelector("[data-flybrain=intent]");
   if (intent) intent.textContent = s.intent;
   for (const [name, val] of Object.entries(s.regions)) {

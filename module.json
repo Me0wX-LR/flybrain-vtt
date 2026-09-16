@@ -2,7 +2,7 @@
   "id": "flybrain-vtt",
   "title": "Fly Brain",
   "description": "A Foundry VTT module that runs a bundled fruit-fly connectome model on the GM client: mark one token as the fly, others as food or threat, inject named stimuli from chat, and draw a single GPU point-cloud overlay. Dummy sparse dynamics ship in v0.1; packed FlyWire bins are optional and non-commercial.",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "compatibility": {
     "minimum": "14",
     "verified": "14"
@@ -18,7 +18,7 @@
   "url": "https://github.com/Me0wX-LR/flybrain-vtt",
   "bugs": "https://github.com/Me0wX-LR/flybrain-vtt/issues",
   "manifest": "https://raw.githubusercontent.com/Me0wX-LR/flybrain-vtt/main/module.json",
-  "download": "https://github.com/Me0wX-LR/flybrain-vtt/archive/refs/tags/v0.4.1.zip",
+  "download": "https://github.com/Me0wX-LR/flybrain-vtt/archive/refs/tags/v0.4.2.zip",
   "esmodules": [
     "scripts/module.js"
   ],
