@@ -1,6 +1,6 @@
 {
   "FLYBRAIN.HudTitle": "Fly Brain",
-  "FLYBRAIN.Ready": "Fly Brain: left toolbar brain icon (or the brain button on Token tools). Chat: /flybrain panel",
+  "FLYBRAIN.Ready": "Fly Brain (Foundry v14): left toolbar brain icon, or the brain button on Token tools. Chat: /flybrain panel",
   "FLYBRAIN.GmOnly": "Fly Brain commands are GM-only in this version.",
   "FLYBRAIN.OneFly": "Only one fly token per scene. The previous fly flag was cleared.",
   "FLYBRAIN.NoFly": "No fly token",

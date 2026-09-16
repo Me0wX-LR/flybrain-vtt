@@ -9,7 +9,7 @@ const INSET = 400;
 export let FlyBrainLayer;
 
 export function registerLayer() {
-  const Base = foundry.canvas?.layers?.CanvasLayer ?? globalThis.CanvasLayer;
+  const Base = foundry.canvas.layers.CanvasLayer;
   if (!Base) {
     console.error("flybrain-vtt: CanvasLayer is not available");
     return;
@@ -143,14 +143,8 @@ export function registerLayer() {
         const rad = 8 + mean * 28;
         const color = 0x66ccff + r * 0x0a1200;
         const g = this.lod;
-        if (g.beginFill) {
-          g.beginFill(color, 0.25 + mean * 0.6);
-          g.drawCircle(x, y, rad);
-          g.endFill();
-        } else if (g.circle && g.fill) {
-          g.circle(x, y, rad);
-          g.fill({ color, alpha: 0.25 + mean * 0.6 });
-        }
+        g.circle(x, y, rad);
+        g.fill({ color, alpha: 0.25 + mean * 0.6 });
       }
     }
 

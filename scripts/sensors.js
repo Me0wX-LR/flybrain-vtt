@@ -10,7 +10,7 @@ function hasLOS(a, b) {
       CONFIG.Canvas?.polygonBackends?.sight?.testCollision ??
       canvas.walls?.checkCollision;
     if (typeof test === "function") {
-      const RayCls = foundry.canvas?.geometry?.Ray ?? globalThis.Ray;
+      const RayCls = foundry.canvas.geometry.Ray;
       const ray = new RayCls(origin, dest);
       const hits = test.call(CONFIG.Canvas?.polygonBackends?.sight ?? canvas.walls, ray, {
         type: "sight",

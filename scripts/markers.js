@@ -13,14 +13,9 @@ function tokenSize(token) {
 }
 
 function strokeRect(g, x, y, w, h, color) {
-  if (typeof g.setStrokeStyle === "function" && typeof g.roundRect === "function") {
-    g.setStrokeStyle({ width: 4, color, alpha: 0.95 });
-    g.roundRect(x, y, w, h, 10);
-    g.stroke();
-    return;
-  }
-  g.lineStyle?.(4, color, 0.95);
-  g.drawRoundedRect?.(x, y, w, h, 10);
+  g.setStrokeStyle({ width: 4, color, alpha: 0.95 });
+  g.roundRect(x, y, w, h, 10);
+  g.stroke();
 }
 
 export function refreshMarker(token) {

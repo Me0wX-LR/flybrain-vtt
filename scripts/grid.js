@@ -1,4 +1,4 @@
-/** Grid helpers for Foundry v13+ (offset i/j) with v12 fallbacks. */
+/** Grid helpers for Foundry v14 (offset i/j). */
 
 export function tokenCenter(token) {
   return token.center ?? {

@@ -6,7 +6,7 @@ Use this file as the project spec. Implement in phase order. Do not add a WebSoc
 
 | Decision | Choice |
 |---|---|
-| Foundry version | **v13+** (PIXI 8 / ApplicationV2). Not dual v12. |
+| Foundry version | **v14 only** (PIXI 8 / ApplicationV2 / button-only SceneControls). Not v13. |
 | Runtime | Inside the installed module only |
 | Extra processes | None |
 | Brain engine | Dummy sparse dynamics now; JS/WASM LIF in a **Web Worker on the sim-owner GM client** when CSR exists |
@@ -67,7 +67,7 @@ Main thread must not step LIF. Sparse / dummy only; never a dense 2.7M-edge × 3
 
 ### Phase 0 — Table fantasy (this repo)
 
-Module loads on v13. Flags, `/flybrain`, HUD stub, fake walk toward food when autonomous.
+Module loads on v14. Flags, `/flybrain`, HUD stub, fake walk toward food when autonomous.
 
 ### Phase 1 — Point mesh
 

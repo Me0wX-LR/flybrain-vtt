@@ -52,19 +52,6 @@ function makeState(PIXI) {
   return state;
 }
 
-function createPixi7(PIXI, positions, activity, region) {
-  const geometry = new PIXI.Geometry()
-    .addAttribute("aPosition", positions, 2)
-    .addAttribute("aActivity", activity, 1)
-    .addAttribute("aRegion", region, 1);
-  const shader = PIXI.Shader.from(VERT, FRAG, {
-    uPointScale: 1,
-    uTint: [1, 1, 1]
-  });
-  const draw = PIXI.DRAW_MODES?.POINTS ?? 0;
-  return new PIXI.Mesh(geometry, shader, makeState(PIXI), draw);
-}
-
 function createPixi8(PIXI, positions, activity, region) {
   const geometry = new PIXI.MeshGeometry({
     aPosition: { buffer: positions, size: 2 },
@@ -91,18 +78,11 @@ function createPixi8(PIXI, positions, activity, region) {
 
 export function createPointMesh(positions, activity, region) {
   const PIXI = globalThis.PIXI;
-  if (!PIXI) return null;
-  if (typeof PIXI.MeshGeometry === "function" && PIXI.Shader?.from) {
-    try {
-      return createPixi8(PIXI, positions, activity, region);
-    } catch (err) {
-      console.warn("flybrain-vtt: PIXI 8 point mesh failed, trying PIXI 7", err);
-    }
-  }
+  if (!PIXI?.MeshGeometry) return null;
   try {
-    return createPixi7(PIXI, positions, activity, region);
+    return createPixi8(PIXI, positions, activity, region);
   } catch (err) {
-    console.warn("flybrain-vtt: PIXI 7 point mesh failed", err);
+    console.warn("flybrain-vtt: PIXI point mesh failed", err);
     return null;
   }
 }

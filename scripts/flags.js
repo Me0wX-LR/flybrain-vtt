@@ -39,7 +39,7 @@ export async function assignSelected(role) {
 export function getStrength(token) {
   const doc = token?.document ?? token;
   const v = Number(doc.getFlag(FLAG_SCOPE, "strength"));
-  return Number.isFinite(v) ? Math.clamped?.(v, 0, 1) ?? Math.min(1, Math.max(0, v)) : 1;
+  return Number.isFinite(v) ? Math.clamp(v, 0, 1) : 1;
 }
 
 export function getChannel(token) {

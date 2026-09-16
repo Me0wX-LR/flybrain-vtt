@@ -1,13 +1,14 @@
 import { MODULE_ID, t } from "./constants.js";
 
 export function registerSettings() {
+  const { BooleanField, NumberField, StringField } = foundry.data.fields;
+
   game.settings.register(MODULE_ID, "autonomousMovement", {
     name: "FLYBRAIN.Setting.Autonomous",
     hint: "FLYBRAIN.Setting.AutonomousHint",
     scope: "world",
     config: true,
-    type: Boolean,
-    default: true
+    type: new BooleanField({ required: true, initial: true })
   });
 
   game.settings.register(MODULE_ID, "overlayEnabled", {
@@ -15,8 +16,7 @@ export function registerSettings() {
     hint: "FLYBRAIN.Setting.OverlayHint",
     scope: "client",
     config: true,
-    type: Boolean,
-    default: true
+    type: new BooleanField({ required: true, initial: true })
   });
 
   game.settings.register(MODULE_ID, "overlayMode", {
@@ -24,12 +24,14 @@ export function registerSettings() {
     hint: "FLYBRAIN.Setting.OverlayModeHint",
     scope: "client",
     config: true,
-    type: String,
-    default: "inset",
-    choices: {
-      inset: "FLYBRAIN.Setting.ModeInset",
-      hud: "FLYBRAIN.Setting.ModeHud"
-    }
+    type: new StringField({
+      required: true,
+      initial: "inset",
+      choices: {
+        inset: "FLYBRAIN.Setting.ModeInset",
+        hud: "FLYBRAIN.Setting.ModeHud"
+      }
+    })
   });
 
   game.settings.register(MODULE_ID, "overlayFps", {
@@ -37,9 +39,7 @@ export function registerSettings() {
     hint: "FLYBRAIN.Setting.OverlayFpsHint",
     scope: "client",
     config: true,
-    type: Number,
-    default: 20,
-    range: { min: 10, max: 30, step: 10 }
+    type: new NumberField({ required: true, nullable: false, integer: true, min: 10, max: 30, step: 10, initial: 20 })
   });
 
   game.settings.register(MODULE_ID, "lodZoom", {
@@ -47,9 +47,7 @@ export function registerSettings() {
     hint: "FLYBRAIN.Setting.LodZoomHint",
     scope: "client",
     config: true,
-    type: Number,
-    default: 0.4,
-    range: { min: 0.15, max: 1, step: 0.05 }
+    type: new NumberField({ required: true, nullable: false, min: 0.15, max: 1, step: 0.05, initial: 0.4 })
   });
 
   game.settings.register(MODULE_ID, "simMsPerTick", {
@@ -57,9 +55,7 @@ export function registerSettings() {
     hint: "FLYBRAIN.Setting.SimMsHint",
     scope: "world",
     config: true,
-    type: Number,
-    default: 30,
-    range: { min: 10, max: 50, step: 5 }
+    type: new NumberField({ required: true, nullable: false, integer: true, min: 10, max: 50, step: 5, initial: 30 })
   });
 
   game.settings.register(MODULE_ID, "debugRaster", {
@@ -67,8 +63,7 @@ export function registerSettings() {
     hint: "FLYBRAIN.Setting.DebugHint",
     scope: "client",
     config: true,
-    type: Boolean,
-    default: false
+    type: new BooleanField({ required: true, initial: false })
   });
 
   game.settings.register(MODULE_ID, "disclaimer", {
@@ -76,8 +71,7 @@ export function registerSettings() {
     hint: t("FLYBRAIN.Disclaimer"),
     scope: "world",
     config: true,
-    type: Boolean,
-    default: true
+    type: new BooleanField({ required: true, initial: true })
   });
 
   game.settings.register(MODULE_ID, "llmApiKey", {
@@ -85,8 +79,7 @@ export function registerSettings() {
     hint: "FLYBRAIN.Setting.ApiKeyHint",
     scope: "client",
     config: true,
-    type: String,
-    default: ""
+    type: new StringField({ required: true, blank: true, initial: "" })
   });
 
   game.settings.register(MODULE_ID, "llmBaseUrl", {
@@ -94,8 +87,7 @@ export function registerSettings() {
     hint: "FLYBRAIN.Setting.ApiBaseHint",
     scope: "client",
     config: true,
-    type: String,
-    default: "https://api.openai.com/v1"
+    type: new StringField({ required: true, initial: "https://api.openai.com/v1" })
   });
 
   game.settings.register(MODULE_ID, "llmModel", {
@@ -103,8 +95,7 @@ export function registerSettings() {
     hint: "FLYBRAIN.Setting.ApiModelHint",
     scope: "client",
     config: true,
-    type: String,
-    default: "gpt-4o-mini"
+    type: new StringField({ required: true, initial: "gpt-4o-mini" })
   });
 }
 

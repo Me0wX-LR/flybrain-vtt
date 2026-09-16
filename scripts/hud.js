@@ -7,13 +7,7 @@ import { getSetting } from "./settings.js";
 import { talkToFly } from "./talk.js";
 import { Brain3D } from "./brain3d.js";
 
-function ApplicationV2() {
-  return foundry.applications?.api?.ApplicationV2 ?? null;
-}
-
-function HandlebarsMixin() {
-  return foundry.applications?.api?.HandlebarsApplicationMixin ?? ((cls) => cls);
-}
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 function pct(v) {
   return Math.round(Math.min(1, Math.max(0, Number(v) || 0)) * 100);
@@ -70,7 +64,7 @@ export function hudState() {
   };
 }
 
-const Base = HandlebarsMixin()(ApplicationV2() ?? class {});
+const Base = HandlebarsApplicationMixin(ApplicationV2);
 
 export class FlyBrainHud extends Base {
   static DEFAULT_OPTIONS = {

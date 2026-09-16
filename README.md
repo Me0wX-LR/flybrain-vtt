@@ -4,9 +4,9 @@ A [Foundry Virtual Tabletop](https://foundryvtt.com/) module that runs a **conne
 
 Select tokens, mark them **Fly / Food / Threat** from the left **brain** toolbar (or the three buttons on the Token HUD). The Fly Brain panel is a toolbar window, not a token sheet. Poke **Sugar / Loom / Walk** on that panel — you do not need to type `/flybrain`.
 
-v0.3. Optional OpenAI-compatible API key in the same panel makes the fly *speak* flavor text. The key never chooses movement. Fly / Food / Threat marks swap the token to bundled PNGs.
+v0.4 is **Foundry VTT v14 only**. The left brain toolbar is a v14 button-only scene control (no dummy canvas tool). Stay on the [v0.3.0](https://github.com/Me0wX-LR/flybrain-vtt/releases/tag/v0.3.0) tag if you are still on Foundry 13.
 
-Compatible with Foundry **v13+**. System-agnostic.
+Optional OpenAI-compatible API key in the same panel makes the fly *speak* flavor text. The key never chooses movement. Fly / Food / Threat marks swap the token to bundled PNGs.
 
 ## At the table
 

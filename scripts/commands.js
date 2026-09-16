@@ -77,21 +77,9 @@ function registerOne(ChatLog, name) {
 }
 
 export function registerCommands() {
-  const ChatLog =
-    foundry.applications?.sidebar?.tabs?.ChatLog ??
-    globalThis.CONFIG?.ui?.chat ??
-    globalThis.ChatLog;
-
+  const ChatLog = foundry.applications.sidebar.tabs.ChatLog;
   if (ChatLog?.CHAT_COMMANDS) {
     registerOne(ChatLog, "flybrain");
     registerOne(ChatLog, "fly");
-    return;
   }
-
-  Hooks.on("chatMessage", (_log, message) => {
-    const m = message.match(/^\/(flybrain|fly)(?:\s+(.*))?$/i);
-    if (!m) return;
-    runFlyCommand(m[2] ?? "");
-    return false;
-  });
 }
