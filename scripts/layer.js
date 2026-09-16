@@ -1,6 +1,6 @@
 import { MODULE_ID, N_NEURONS } from "./constants.js";
 import { getFlyToken } from "./flags.js";
-import { generateDummySomata, loadSomataBin, REGION_LAYOUT } from "./somata.js";
+import { getDummySomata, loadSomataBin, REGION_LAYOUT } from "./somata.js";
 import { createPointMesh, setPointScale, uploadActivity } from "./shader.js";
 import { getSetting } from "./settings.js";
 
@@ -50,7 +50,7 @@ export function registerLayer() {
         this.region = new Float32Array(this.n);
         for (let i = 0; i < this.n; i++) this.region[i] = i % REGION_LAYOUT.length;
       } else {
-        const dummy = generateDummySomata(N_NEURONS);
+        const dummy = getDummySomata(N_NEURONS);
         this.n = N_NEURONS;
         this.positions = dummy.xy;
         this.region = dummy.region;

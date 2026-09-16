@@ -10,7 +10,8 @@ import { sampleSensors, sensorCurrents } from "./sensors.js";
 import { applyIntent, decodeMotor, fakeTowardFood } from "./decoder.js";
 import { loadAtlas } from "./atlas.js";
 import { createApi } from "./api.js";
-import { getFlyToken } from "./flags.js";
+import { getFlyToken, syncSceneAppearance } from "./flags.js";
+import { flyHealth, hpCurrents } from "./hp.js";
 
 const runtime = {
   bridge: null,
@@ -32,11 +33,12 @@ async function onTableTick() {
   const fly = getFlyToken();
   if (!fly) return;
   const sensors = sampleSensors();
-  runtime.bridge?.setCurrents(sensorCurrents(sensors));
+  const health = flyHealth();
+  runtime.bridge?.setCurrents([...sensorCurrents(sensors), ...hpCurrents(health)]);
   runtime.bridge?.step();
   const motor = runtime.bridge?.lastFrame?.motor;
   let intent = motor ? decodeMotor(motor, sensors) : { type: "idle" };
-  if (!intent || intent.type === "idle") intent = fakeTowardFood(sensors);
+  if (!intent || intent.type === "idle") intent = health.dead ? { type: "idle", reason: "dead" } : fakeTowardFood(sensors);
   await applyIntent(intent);
   refreshHud();
 }
@@ -71,6 +73,9 @@ Hooks.once("ready", async () => {
 
 Hooks.on("canvasReady", () => {
   stopLoop();
+  if (game.user.isGM) {
+    syncSceneAppearance().catch((err) => console.warn("flybrain-vtt art", err));
+  }
   if (!game.user.isGM) return;
   if (!isSimOwner()) return;
   runtime.bridge = new WorkerBridge();
@@ -86,8 +91,8 @@ Hooks.on("canvasTearDown", () => {
 
 Hooks.on("pauseGame", onPause);
 
-Hooks.on("updateToken", () => {
-  /* sensors re-read documents each tick */
+Hooks.on("updateActor", () => {
+  refreshHud();
 });
 
 document.addEventListener("visibilitychange", () => {

@@ -12,15 +12,6 @@ function tokenSize(token) {
   return { w: w || 100, h: h || 100 };
 }
 
-function makeText(label, fill = 0xffffff) {
-  const style = { fontSize: 12, fill, fontWeight: "bold", fontFamily: "Signika, sans-serif" };
-  try {
-    return new PIXI.Text({ text: label, style });
-  } catch {
-    return new PIXI.Text(label, style);
-  }
-}
-
 function strokeRect(g, x, y, w, h, color) {
   if (typeof g.setStrokeStyle === "function" && typeof g.roundRect === "function") {
     g.setStrokeStyle({ width: 4, color, alpha: 0.95 });
@@ -30,17 +21,6 @@ function strokeRect(g, x, y, w, h, color) {
   }
   g.lineStyle?.(4, color, 0.95);
   g.drawRoundedRect?.(x, y, w, h, 10);
-}
-
-function fillRect(g, x, y, w, h, color, alpha) {
-  if (typeof g.roundRect === "function" && typeof g.fill === "function") {
-    g.roundRect(x, y, w, h, 4);
-    g.fill({ color, alpha });
-    return;
-  }
-  g.beginFill?.(color, alpha);
-  g.drawRoundedRect?.(x, y, w, h, 4);
-  g.endFill?.();
 }
 
 export function refreshMarker(token) {
@@ -60,11 +40,6 @@ export function refreshMarker(token) {
   g.eventMode = "none";
   g.interactive = false;
   strokeRect(g, 3, 3, Math.max(8, w - 6), Math.max(8, h - 6), vis.color);
-  fillRect(g, 3, 3, 54, 18, vis.color, 0.95);
-  const text = makeText(vis.label, 0x111111);
-  text.position.set(8, 4);
-  text.eventMode = "none";
-  g.addChild(text);
   token.addChild(g);
 }
 

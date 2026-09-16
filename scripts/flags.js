@@ -1,5 +1,11 @@
 import { FLAG_SCOPE, MODULE_ID, ROLES, t } from "./constants.js";
 
+export const ROLE_ART = Object.freeze({
+  fly: `modules/${MODULE_ID}/assets/fly.png`,
+  food: `modules/${MODULE_ID}/assets/food.png`,
+  threat: `modules/${MODULE_ID}/assets/threat.png`
+});
+
 export function getRole(token) {
   const doc = token?.document ?? token;
   if (!doc?.getFlag) return "none";
@@ -14,7 +20,7 @@ export async function setRole(token, role) {
     return;
   }
   if (role === "fly") await ensureSingleFly(doc);
-  await doc.setFlag(FLAG_SCOPE, "role", role);
+  await applyRoleAppearance(doc, role);
 }
 
 export async function assignSelected(role) {
@@ -54,12 +60,44 @@ export function tokensWithRole(role) {
   return sceneTokens().filter((t) => getRole(t) === role);
 }
 
+function currentSrc(doc) {
+  return doc.texture?.src ?? doc.img ?? "";
+}
+
+function isModuleArt(src) {
+  return String(src).includes(`modules/${MODULE_ID}/assets/`);
+}
+
+async function applyRoleAppearance(doc, role) {
+  const srcNow = currentSrc(doc);
+  let originalSrc = doc.getFlag(FLAG_SCOPE, "originalSrc");
+  if (!originalSrc && srcNow && !isModuleArt(srcNow)) originalSrc = srcNow;
+  const nextSrc = ROLE_ART[role] ?? originalSrc;
+  const data = {
+    [`flags.${FLAG_SCOPE}.role`]: role
+  };
+  if (originalSrc) data[`flags.${FLAG_SCOPE}.originalSrc`] = originalSrc;
+  if (nextSrc && nextSrc !== srcNow) data["texture.src"] = nextSrc;
+  await doc.update(data);
+}
+
+export async function syncSceneAppearance() {
+  if (!game.user?.isGM) return;
+  for (const token of sceneTokens()) {
+    const role = getRole(token);
+    if (!ROLE_ART[role]) continue;
+    const doc = token.document;
+    if (currentSrc(doc) === ROLE_ART[role]) continue;
+    await applyRoleAppearance(doc, role);
+  }
+}
+
 async function ensureSingleFly(nextDoc) {
   for (const token of sceneTokens()) {
     const doc = token.document;
     if (doc.id !== nextDoc.id && getRole(token) === "fly") {
       ui.notifications.warn(t("FLYBRAIN.OneFly"));
-      await doc.setFlag(FLAG_SCOPE, "role", "none");
+      await applyRoleAppearance(doc, "none");
     }
   }
 }

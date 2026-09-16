@@ -21,3 +21,7 @@ Public FlyWire FAFB v783 connectivity, if you pack and redistribute `data/graph.
 - nftechie/doomfly — sensor → descending-neuron readout *idea* only
 
 No Doom / id Software assets. No Foundry VTT source is republished.
+
+## Token presets
+
+`assets/fly.png`, `assets/food.png`, and `assets/threat.png` are bundled table-token stills generated for this module. They are not FlyWire imagery and are not claimed as scientific figures. Clearing a role restores the token’s previous `texture.src`.

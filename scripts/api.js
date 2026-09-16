@@ -1,6 +1,6 @@
 import { MODULE_ID } from "./constants.js";
 import { runFlyCommand } from "./commands.js";
-import { assignSelected, getFlyToken, getRole, setRole, tokensWithRole } from "./flags.js";
+import { assignSelected, getFlyToken, getRole, setRole, syncSceneAppearance, tokensWithRole } from "./flags.js";
 import { getLastIntent } from "./decoder.js";
 import { openHud, refreshHud, toggleHud } from "./hud.js";
 
@@ -26,6 +26,7 @@ export function createApi(getRuntime) {
     getRole,
     setRole,
     assignSelected,
+    syncSceneAppearance,
     tokensWithRole,
     getLastIntent,
     statusText() {

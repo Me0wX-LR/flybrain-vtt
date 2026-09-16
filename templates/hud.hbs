@@ -1,22 +1,25 @@
 <section class="flybrain-hud-body">
-  <p class="flybrain-kicker">{{fly}} · {{intent}} · food {{foodCount}} · threat {{threatCount}}</p>
-  {{#unless flyOk}}<p class="flybrain-warn">{{localize "FLYBRAIN.Hint.NeedFly"}}</p>{{/unless}}
-  {{#unless autonomous}}<p class="flybrain-warn">{{localize "FLYBRAIN.Hint.NeedWalk"}}</p>{{/unless}}
+  <div class="flybrain-3d-wrap" data-state="{{health.state}}">
+    <canvas class="flybrain-3d" width="400" height="320"></canvas>
+    <p class="flybrain-3d-hint">{{localize "FLYBRAIN.Brain3d.Hint"}}</p>
+    <div class="flybrain-dead-banner">{{localize "FLYBRAIN.Hp.Dead"}}</div>
+  </div>
 
-  <h3>{{localize "FLYBRAIN.MarkTokens"}}</h3>
-  <p class="flybrain-cmd">{{localize "FLYBRAIN.Selected"}}: {{selectedName}} ({{selectedRole}})</p>
+  <div class="flybrain-hp" data-flybrain="hp-row" data-state="{{health.state}}">
+    <i data-flybrain="hp-fill" style="width: {{health.pct}}%"></i>
+    <span data-flybrain="hp-label">{{health.label}} · {{hpCaption}}</span>
+  </div>
+
+  <p class="flybrain-kicker">{{fly}} · {{intent}}</p>
+  {{#unless flyOk}}<p class="flybrain-warn">{{localize "FLYBRAIN.Hint.NeedFly"}}</p>{{/unless}}
+
   <div class="flybrain-actions flybrain-roles">
     <button type="button" class="flybrain-pick-fly" data-action="assign" data-role="fly">{{localize "FLYBRAIN.Role.Fly"}}</button>
     <button type="button" class="flybrain-pick-food" data-action="assign" data-role="food">{{localize "FLYBRAIN.Role.Food"}}</button>
     <button type="button" class="flybrain-pick-threat" data-action="assign" data-role="threat">{{localize "FLYBRAIN.Role.Threat"}}</button>
   </div>
+  <p class="flybrain-cmd">{{localize "FLYBRAIN.Selected"}}: {{selectedName}}</p>
 
-  <label class="flybrain-check">
-    <input type="checkbox" data-flybrain="autonomous" {{#if autonomous}}checked{{/if}} />
-    {{localize "FLYBRAIN.Setting.Autonomous"}}
-  </label>
-
-  <h3>{{localize "FLYBRAIN.Poke"}}</h3>
   <div class="flybrain-actions">
     <button type="button" data-action="cmd" data-cmd="sugar">{{localize "FLYBRAIN.Cmd.Sugar"}}</button>
     <button type="button" data-action="cmd" data-cmd="loom">{{localize "FLYBRAIN.Cmd.Loom"}}</button>
@@ -24,39 +27,45 @@
     <button type="button" data-action="cmd" data-cmd="stop">{{localize "FLYBRAIN.Cmd.Stop"}}</button>
   </div>
 
-  <h3>{{localize "FLYBRAIN.Motors"}}</h3>
-  <ul class="flybrain-motors">
-    <li>feed {{motor.feedHz}}</li>
-    <li>escape {{motor.escapeHz}}</li>
-    <li>turn {{motor.turn}}</li>
-    <li>forward {{motor.forward}}</li>
-  </ul>
-  <p class="flybrain-cmd">{{localize "FLYBRAIN.Intent"}}: <span data-flybrain="intent">{{intent}}</span> · {{lastCommand}}</p>
+  <label class="flybrain-check">
+    <input type="checkbox" data-flybrain="autonomous" {{#if autonomous}}checked{{/if}} />
+    {{localize "FLYBRAIN.Setting.Autonomous"}}
+  </label>
 
-  <h3>{{localize "FLYBRAIN.Regions"}}</h3>
-  <div class="flybrain-meter"><span>optic</span><i data-region="optic" style="width: {{regions.optic}}%"></i></div>
-  <div class="flybrain-meter"><span>al</span><i data-region="al" style="width: {{regions.al}}%"></i></div>
-  <div class="flybrain-meter"><span>mb</span><i data-region="mb" style="width: {{regions.mb}}%"></i></div>
-  <div class="flybrain-meter"><span>cx</span><i data-region="cx" style="width: {{regions.cx}}%"></i></div>
-  <div class="flybrain-meter"><span>sez</span><i data-region="sez" style="width: {{regions.sez}}%"></i></div>
-  <div class="flybrain-meter"><span>dn</span><i data-region="dn" style="width: {{regions.dn}}%"></i></div>
+  <details class="flybrain-details">
+    <summary>{{localize "FLYBRAIN.Motors"}} · <span data-flybrain="intent">{{intent}}</span></summary>
+    <ul class="flybrain-motors">
+      <li>feed {{motor.feedHz}}</li>
+      <li>escape {{motor.escapeHz}}</li>
+      <li>turn {{motor.turn}}</li>
+      <li>forward {{motor.forward}}</li>
+    </ul>
+    <div class="flybrain-meter"><span>optic</span><i data-region="optic" style="width: {{regions.optic}}%"></i></div>
+    <div class="flybrain-meter"><span>al</span><i data-region="al" style="width: {{regions.al}}%"></i></div>
+    <div class="flybrain-meter"><span>mb</span><i data-region="mb" style="width: {{regions.mb}}%"></i></div>
+    <div class="flybrain-meter"><span>cx</span><i data-region="cx" style="width: {{regions.cx}}%"></i></div>
+    <div class="flybrain-meter"><span>sez</span><i data-region="sez" style="width: {{regions.sez}}%"></i></div>
+    <div class="flybrain-meter"><span>dn</span><i data-region="dn" style="width: {{regions.dn}}%"></i></div>
+  </details>
 
-  <h3>{{localize "FLYBRAIN.Talk.Title"}}</h3>
-  <p class="flybrain-cmd">{{localize "FLYBRAIN.Talk.Hint"}}</p>
-  <div class="flybrain-keyrow">
-    <input type="password" data-flybrain="apikey" placeholder="{{localize 'FLYBRAIN.Talk.ApiKeyPlaceholder'}}" autocomplete="off" />
-    <input type="text" data-flybrain="apibase" value="{{apiBase}}" placeholder="https://api.openai.com/v1" />
-    <input type="text" data-flybrain="apimodel" value="{{apiModel}}" placeholder="gpt-4o-mini" />
-    <button type="button" data-flybrain="save-key">{{localize "FLYBRAIN.Talk.SaveKey"}}</button>
-  </div>
-  <p class="flybrain-cmd">{{#if apiKeySet}}{{localize "FLYBRAIN.Talk.KeyOn"}}{{else}}{{localize "FLYBRAIN.Talk.KeyOff"}}{{/if}}</p>
-  <div class="flybrain-log">
-    {{#each talkLog}}
-    <p class="flybrain-log-{{this.who}}"><strong>{{this.who}}</strong> {{this.text}}</p>
-    {{/each}}
-  </div>
-  <form data-flybrain="talk-form" class="flybrain-talk">
-    <input type="text" data-flybrain="talk" placeholder="{{localize 'FLYBRAIN.Talk.Placeholder'}}" />
-    <button type="submit">{{localize "FLYBRAIN.Talk.Send"}}</button>
-  </form>
+  <details class="flybrain-details">
+    <summary>{{localize "FLYBRAIN.Talk.Title"}}</summary>
+    <p class="flybrain-cmd">{{localize "FLYBRAIN.Talk.Hint"}}</p>
+    <div class="flybrain-keyrow">
+      <input type="password" data-flybrain="apikey" placeholder="{{localize 'FLYBRAIN.Talk.ApiKeyPlaceholder'}}" autocomplete="off" />
+      <input type="text" data-flybrain="apibase" value="{{apiBase}}" />
+      <input type="text" data-flybrain="apimodel" value="{{apiModel}}" />
+      <button type="button" data-flybrain="save-key">{{localize "FLYBRAIN.Talk.SaveKey"}}</button>
+    </div>
+    <p class="flybrain-cmd">{{#if apiKeySet}}{{localize "FLYBRAIN.Talk.KeyOn"}}{{else}}{{localize "FLYBRAIN.Talk.KeyOff"}}{{/if}}</p>
+    <div class="flybrain-log">
+      {{#each talkLog}}
+      <p class="flybrain-log-{{this.who}}"><strong>{{this.who}}</strong> {{this.text}}</p>
+      {{/each}}
+    </div>
+    <form data-flybrain="talk-form" class="flybrain-talk">
+      <input type="text" data-flybrain="talk" placeholder="{{localize 'FLYBRAIN.Talk.Placeholder'}}" />
+      <button type="submit">{{localize "FLYBRAIN.Talk.Send"}}</button>
+    </form>
+  </details>
 </section>

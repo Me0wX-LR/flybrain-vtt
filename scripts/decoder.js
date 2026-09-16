@@ -1,5 +1,6 @@
 import { MOVE_COOLDOWN_MS, T_ESCAPE, T_FEED, T_FWD, isSimOwner } from "./constants.js";
 import { getFlyToken } from "./flags.js";
+import { isFlySilenced } from "./hp.js";
 import { getSetting } from "./settings.js";
 import { gridSquares, stepAway, stepFacing, stepToward } from "./grid.js";
 
@@ -45,11 +46,12 @@ function slide(token, dest) {
 }
 
 export function decodeMotor(motor, sensors) {
+  const fly = getFlyToken();
+  if (!fly) return { type: "idle" };
+  if (isFlySilenced()) return { type: "idle", reason: "dead" };
   const feedHz = motor?.feedHz ?? 0;
   const escapeHz = motor?.escapeHz ?? 0;
   const forward = motor?.forward ?? 0;
-  const fly = getFlyToken();
-  if (!fly) return { type: "idle" };
   const now = Date.now();
   const escape = escapeHz > T_ESCAPE || now < boosts.escapeUntil;
   const walkBoost = now < boosts.walkUntil;
@@ -78,7 +80,7 @@ export function decodeMotor(motor, sensors) {
 
 export function fakeTowardFood(sensors) {
   const fly = getFlyToken();
-  if (!fly || !sensors.nearestFood) return { type: "idle" };
+  if (!fly || isFlySilenced() || !sensors.nearestFood) return { type: "idle" };
   const d = gridSquares(fly, sensors.nearestFood);
   if (d <= 1) return { type: "feed", reason: "food-adjacent" };
   return { type: "walk", target: sensors.nearestFood, steps: 1, reason: "seek-food" };
@@ -100,6 +102,10 @@ export async function applyIntent(intent) {
   const now = Date.now();
   if (now - lastMoveAt < MOVE_COOLDOWN_MS) return lastIntent;
   if (!intent || intent.type === "idle") return lastIntent;
+  if (isFlySilenced()) {
+    lastIntent = { type: "idle", reason: "dead" };
+    return lastIntent;
+  }
 
   if (intent.type === "feed") {
     lastMoveAt = now;
